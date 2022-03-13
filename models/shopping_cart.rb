@@ -10,7 +10,7 @@ class ShoppingCart
     @items[item_name] += 1
   end
 
-  def item_count(item_name: '')
-    @items[item_name]
+  def item_count(item_name:)
+    @items[item_name.to_s]
   end
 end
