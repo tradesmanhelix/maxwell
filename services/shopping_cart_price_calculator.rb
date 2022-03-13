@@ -1,12 +1,17 @@
+require File.join(File.dirname(__FILE__), '../models/shopping_cart_price_summary')
+
 class ShoppingCartPriceCalculator
   def calculate_total(shopping_cart: nil)
     raise 'Unable to calculate total for invalid cart' if shopping_cart.nil? || !shopping_cart.is_a?(ShoppingCart)
+
+    summary = ShoppingCartPriceSummary.new
 
     cart_total = 0
     savings = 0
     current_unit_price_data.each do |name, price_data|
       item_total = 0
       qty = shopping_cart.item_count(item_name: name)
+      total_sold = qty
 
       item_is_on_sale = price_data[:is_on_sale]
       sale_quantity = price_data[:sale_quantity]
@@ -30,11 +35,21 @@ class ShoppingCartPriceCalculator
       # Calculate the non-sale price
       item_total += qty * unit_price
 
-      # Add to the total running price for the cart
+      # Create a price summary for this item
+      summary.add_item_summary(
+        item_name: name,
+        total_sold: total_sold,
+        total_price: item_total
+      )
+
+      # Add this item's total to the running total for the cart
       cart_total += item_total
     end
 
-    "$#{cart_total.round(2)}"
+    summary.total_savings = savings
+    summary.cart_total = cart_total
+
+    summary
   end
 
   private
